@@ -6,14 +6,12 @@ from tkinter import messagebox
 import face_recognition
 
 
-def get_button(window, text, color, command, fg='white'):
+def get_button(window, text, command, bg = 'green', fg='black'):
     button = tk.Button(
                         window,
                         text=text,
-                        activebackground="black",
-                        activeforeground="white",
                         fg=fg,
-                        bg=color,
+                        bg=bg,
                         command=command,
                         height=2,
                         width=20,
@@ -37,8 +35,13 @@ def get_text_label(window, text):
 
 def get_entry_text(window):
     inputtxt = tk.Text(window,
-                       height=2,
-                       width=15, font=("Arial", 32))
+                       height=1,
+                       width=30, font=("Arial", 25  ))
+    return inputtxt
+
+def get_password_text(window):
+    inputtxt = tk.Entry(window,
+                       width=30, font=("Arial", 25  ), show = '*')
     return inputtxt
 
 
