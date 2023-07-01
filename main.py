@@ -3,9 +3,10 @@ import cv2
 from PIL import Image, ImageTk
 import os
 import util
+from database import *
 import subprocess
-
-
+from datetime import date
+from threading import *
 class App:
     def __init__(self):
         self.root = tk.Tk()
@@ -23,7 +24,7 @@ class App:
 
     def login_window_create(self):
         self.main_window = tk.Toplevel(self.root)
-        self.main_window.geometry("1200x520+350+100")
+        self.main_window.geometry("1300x520+150+100")
         
         self.webcam_label = util.get_img_label(self.main_window)
         self.webcam_label.place(x = 10, y = 0, width = 700, height = 500)
@@ -31,20 +32,26 @@ class App:
         
         self.main_window.mainloop()
 
-    
 
     def login(self):
         unknown_img_path = './tmp.jpg'
         cv2.imwrite(unknown_img_path, self.most_recent_capt_arr)
         output = str(subprocess.check_output(['face_recognition','--tolerance', '0.44', self.db_dir, unknown_img_path]))
         print(output)
-        name = output.split(',')[1][:8]
-        print(name)
-        if name in ['no_persons_found', 'unknown_person']:
+        username = output.split(',')[1][:8]
+        print(username)
+        if username in ['no_persons_found'[:8], 'unknown_person'[:8]]:
             self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
             self.text_label_main_window.place(x = 750, y = 50)
             self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
         else:
+            user = get_user(username)
+            name = user["name"]
+            present_dates = set(user["present_dates"])
+            present_dates.add(str(date.today()))
+            updates = {"present_dates": list(present_dates)}
+            update_user(username, updates)
+
             self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}.Your attendance has been marked.'.format(name))
             self.text_label_main_window.place(x = 750, y = 50)
             self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
@@ -71,21 +78,26 @@ class App:
         self.entry_text_register_new_user.place(x =750, y=90)
         self.text_label_register_new_user = util.get_text_label(self.register_new_user_window, 'User ID: ')
         self.text_label_register_new_user.place(x = 750, y = 50)
+        
 
         self.name_register_new_user = util.get_entry_text(self.register_new_user_window)
         self.name_register_new_user.place(x =750, y=190)
         self.text_name_register_new_user = util.get_text_label(self.register_new_user_window, 'Name : ')
         self.text_name_register_new_user.place(x = 750, y = 150)
+        
 
         self.email_register_new_user = util.get_entry_text(self.register_new_user_window)
         self.email_register_new_user.place(x =750, y=290)
         self.text_email_register_new_user = util.get_text_label(self.register_new_user_window, 'Email : ')
         self.text_email_register_new_user.place(x = 750, y = 250)
+        
 
         self.password_register_new_user = util.get_password_text(self.register_new_user_window)
         self.password_register_new_user.place(x =750, y=390)
         self.text_password_register_new_user = util.get_text_label(self.register_new_user_window, 'Password : ')
         self.text_password_register_new_user.place(x = 750, y = 350)
+        
+        
 
     def add_img_to_label(self, label):
         imgtk =ImageTk.PhotoImage(image = self.most_recent_capture_pil)
@@ -110,8 +122,12 @@ class App:
         self.add_img_to_label(self.capture_label)
 
     def accept_register_new_user(self):
-        name = self.entry_text_register_new_user.get(1.0,'end-1c')
-        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(name)), self.register_new_user_capture)
+        username = self.entry_text_register_new_user.get(1.0,'end-1c')
+        name = self.name_register_new_user.get(1.0,'end-1c')
+        email = self.email_register_new_user.get(1.0,'end-1c')
+        password = self.password_register_new_user.get()
+        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(username)), self.register_new_user_capture)
+        insert_user(username, name, email,password)
         util.msg_box('Success!', 'User registered successfully')
         self.register_new_user_window.destroy()
         app.start()
@@ -130,7 +146,7 @@ class App:
         if process == 'login':
             self.login()
         self._label.after(20, self.process_webcam, process)
-        
+         
 
 if __name__ == "__main__":
     app = App()
