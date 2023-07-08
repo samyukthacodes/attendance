@@ -1,10 +1,10 @@
 import os
-import pickle
+
 
 import tkinter as tk
 from tkinter import messagebox
 import face_recognition
-
+import numpy as np
 
 def get_button(window, text, command, bg = 'green', fg='black'):
     button = tk.Button(
@@ -54,24 +54,25 @@ def recognize(img, db_path):
 
     embeddings_unknown = face_recognition.face_encodings(img)
     if len(embeddings_unknown) == 0:
-        return 'no_persons_found'
+        return 'no_person_found'
     else:
         embeddings_unknown = embeddings_unknown[0]
 
-    db_dir = sorted(os.listdir(db_path))
-
-    match = False
+    db_dir = sorted(os.listdir(db_path))    
+    match = np.array([False])
     j = 0
-    while not match and j < len(db_dir):
+    while(not match.all() and j < len(db_dir)):
         path_ = os.path.join(db_path, db_dir[j])
+        print(path_)
+        known_image = face_recognition.load_image_file(path_)
+        known_faces = face_recognition.face_encodings(face_image = known_image)
 
-        file = open(path_, 'rb')
-        embeddings = pickle.load(file)
-
-        match = face_recognition.compare_faces([embeddings], embeddings_unknown)[0]
+        match = face_recognition.compare_faces([known_faces], embeddings_unknown, tolerance=0.44)[0]
+        
+        
         j += 1
 
-    if match:
-        return db_dir[j - 1][:-7]
+    if match.all():
+        return db_dir[j-1].split('.',)[0]
     else:
-        return 'unknown_person'
+        return 'no_person_found'

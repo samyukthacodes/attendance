@@ -4,7 +4,6 @@ from PIL import Image, ImageTk
 import os
 import util
 from database import *
-import subprocess
 from datetime import date
 from threading import *
 class App:
@@ -30,32 +29,40 @@ class App:
         self.webcam_label.place(x = 10, y = 0, width = 700, height = 500)
         self.add_webcam(self.webcam_label, process='login')
         
+        self.login_thread = Thread(target = self.login)
+        self.login_thread.start()
+        
         self.main_window.mainloop()
 
 
     def login(self):
-        unknown_img_path = './tmp.jpg'
-        cv2.imwrite(unknown_img_path, self.most_recent_capt_arr)
-        output = str(subprocess.check_output(['face_recognition','--tolerance', '0.44', self.db_dir, unknown_img_path]))
-        print(output)
-        username = output.split(',')[1][:8]
-        print(username)
-        if username in ['no_persons_found'[:8], 'unknown_person'[:8]]:
-            self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
-            self.text_label_main_window.place(x = 750, y = 50)
-            self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
-        else:
-            user = get_user(username)
-            name = user["name"]
-            present_dates = set(user["present_dates"])
-            present_dates.add(str(date.today()))
-            updates = {"present_dates": list(present_dates)}
-            update_user(username, updates)
+        while(self.main_window.winfo_exists()):
+            print('Login entered')
+            unknown_img_path = './tmp.jpg'
+            cv2.imwrite(unknown_img_path, self.most_recent_capt_arr)
 
-            self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}.Your attendance has been marked.'.format(name))
-            self.text_label_main_window.place(x = 750, y = 50)
-            self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
-        os.remove(unknown_img_path)
+            username = util.recognize(self.most_recent_capt_arr, self.db_dir)
+            #output = str(subprocess.check_output(['face_recognition','--tolerance', '0.44', self.db_dir, unknown_img_path]))
+            #print(output)
+            #username = output.split(',')[1][:8]
+            print(username)
+            #if username in ['no_person_found'[:8], 'unknown_person'[:8]]:
+            if username == 'no_person_found':
+                self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
+                self.text_label_main_window.place(x = 750, y = 50)
+                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+            else:
+                user = get_user(username)
+                name = user["name"]
+                present_dates = set(user["present_dates"])
+                present_dates.add(str(date.today()))
+                updates = {"present_dates": list(present_dates)}
+                update_user(username, updates)
+
+                self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}.Your attendance has been marked.'.format(name))
+                self.text_label_main_window.place(x = 750, y = 50)
+                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+            os.remove(unknown_img_path)
 
     def register_new_user(self):
 
@@ -142,9 +149,9 @@ class App:
         imgtk =ImageTk.PhotoImage(image = self.most_recent_capture_pil)
         self._label.imgtk = imgtk
         self._label.configure(image = imgtk)
-
-        if process == 'login':
-            self.login()
+        
+    #    if process == 'login':
+    #        self.login()
         self._label.after(20, self.process_webcam, process)
          
 
