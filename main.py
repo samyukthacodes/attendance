@@ -9,8 +9,8 @@ from threading import *
 class App:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.geometry("400x200+150+100")
-
+        self.root.geometry("480x250+150+100")
+        self.root.title("VisionTrack")
         self.login_new_user_button_root_window = util.get_button(self.root, text = 'Login', bg = 'white',command = self.login_window_create, fg = 'red')
         self.login_new_user_button_root_window.place(x = 60, y = 20)
         self.register_new_user_button_root_window = util.get_button(self.root, text = 'Register', bg = 'grey', command =  self.register_new_user, fg = 'black')
@@ -23,7 +23,8 @@ class App:
 
     def login_window_create(self):
         self.main_window = tk.Toplevel(self.root)
-        self.main_window.geometry("1300x520+150+100")
+        self.main_window.geometry("1500x520+150+100")
+        self.main_window.title("VisionTrack - Login")
         
         self.webcam_label = util.get_img_label(self.main_window)
         self.webcam_label.place(x = 10, y = 0, width = 700, height = 500)
@@ -37,39 +38,41 @@ class App:
 
     def login(self):
         while(self.main_window.winfo_exists()):
-            print('Login entered')
-            unknown_img_path = './tmp.jpg'
-            cv2.imwrite(unknown_img_path, self.most_recent_capt_arr)
+                try:
+                        
+                        unknown_img_path = './tmp.jpg'
+                        cv2.imwrite(unknown_img_path, self.most_recent_capt_arr)
 
-            username = util.recognize(self.most_recent_capt_arr, self.db_dir)
-            #output = str(subprocess.check_output(['face_recognition','--tolerance', '0.44', self.db_dir, unknown_img_path]))
-            #print(output)
-            #username = output.split(',')[1][:8]
-            print(username)
-            #if username in ['no_person_found'[:8], 'unknown_person'[:8]]:
-            if username == 'no_person_found':
-                self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
-                self.text_label_main_window.place(x = 750, y = 50)
-                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
-            else:
-                user = get_user(username)
-                name = user["name"]
-                present_dates = set(user["present_dates"])
-                present_dates.add(str(date.today()))
-                updates = {"present_dates": list(present_dates)}
-                update_user(username, updates)
+                        username = util.recognize(self.most_recent_capt_arr, self.db_dir)
+                            
+                        print(username)
+                        
+                        if username == 'no_person_found':
+                                self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
+                                self.text_label_main_window.place(x = 750, y = 50)
+                                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+                        else:
+                                print(username)
+                                user = get_user(username)
+                                name = user["name"]
+                                present_dates = set(user["present_dates"])
+                                present_dates.add(str(date.today()))
+                                updates = {"present_dates": list(present_dates)}
+                                update_user(username, updates)
 
-                self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}.Your attendance has been marked.'.format(name))
-                self.text_label_main_window.place(x = 750, y = 50)
-                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
-            os.remove(unknown_img_path)
+                                self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}({}).'.format(name, username))
+                                self.text_label_main_window.place(x = 750, y = 50)
+                                self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+                                os.remove(unknown_img_path)
+                except Exception:
+                        pass
 
     def register_new_user(self):
 
 
         self.register_new_user_window = tk.Toplevel(self.root)
-        self.register_new_user_window.geometry("1200x680+350+100")
-        
+        self.register_new_user_window.geometry("1500x750+50+100")
+        self.register_new_user_window.title("VisionTrack - Register")
 
         self.capture_button_register_new_user_window = util.get_button(self.register_new_user_window, text = 'Capture', bg = 'green', command=self.capture_register_new_user)
         self.capture_button_register_new_user_window.place(x = 750, y = 450)
@@ -150,8 +153,7 @@ class App:
         self._label.imgtk = imgtk
         self._label.configure(image = imgtk)
         
-    #    if process == 'login':
-    #        self.login()
+    
         self._label.after(20, self.process_webcam, process)
          
 

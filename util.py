@@ -63,7 +63,6 @@ def recognize(img, db_path):
     j = 0
     while(not match.all() and j < len(db_dir)):
         path_ = os.path.join(db_path, db_dir[j])
-        print(path_)
         known_image = face_recognition.load_image_file(path_)
         known_faces = face_recognition.face_encodings(face_image = known_image)
 

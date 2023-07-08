@@ -23,3 +23,4 @@ def get_user(username):
 def update_user(username, updates):
     return db.update(updates, username)
 
+
