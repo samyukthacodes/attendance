@@ -6,6 +6,17 @@ import util
 from database import *
 from datetime import date
 from threading import *
+import board
+import adafruit_ssd1306
+import digitalio
+import bcrypt
+from PIL import Image, ImageDraw, ImageFont
+
+i2c = board.I2C()
+
+oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+
+
 class App:
     def __init__(self):
         self.root = tk.Tk()
@@ -48,9 +59,22 @@ class App:
                         print(username)
                         
                         if username == 'no_person_found':
-                                self.text_label_main_window = util.get_text_label(self.main_window, 'Person not found. Please register')
+                                text = "Person not found. Please register"
+                                self.text_label_main_window = util.get_text_label(self.main_window, text)
                                 self.text_label_main_window.place(x = 750, y = 50)
                                 self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+                                
+                                oled.fill(0)
+                                image = Image.new("1",(oled.width, oled.height))
+                                draw = ImageDraw.Draw(image)
+
+                                font = ImageFont.load_default()
+                                text = "Person not found.\nPlease register"
+                                
+                                draw.text((0,0), text, font=font, fill = 255)
+                                oled.image(image)
+                                oled.show()
+
                         else:
                                 print(username)
                                 user = get_user(username)
@@ -59,13 +83,33 @@ class App:
                                 present_dates.add(str(date.today()))
                                 updates = {"present_dates": list(present_dates)}
                                 update_user(username, updates)
-
+                                
                                 self.text_label_main_window = util.get_text_label(self.main_window, 'Welcome {}({}).'.format(name, username))
                                 self.text_label_main_window.place(x = 750, y = 50)
+                                oled.fill(0)
+                                image = Image.new("1",(oled.width, oled.height))
+                                draw = ImageDraw.Draw(image)
+
+                                font = ImageFont.load_default()
+
+                                text = 'Welcome {}\nUsername:{}.'.format(name, username)
+                                draw.text((0,0), text, font=font, fill = 255)
+                                oled.image(image)
+                                oled.show()
                                 self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
                                 os.remove(unknown_img_path)
                 except Exception:
                         pass
+        oled.fill(0)
+        image = Image.new("1",(oled.width, oled.height))
+        draw = ImageDraw.Draw(image)
+        text = ':)'
+        draw.text((0,0), text, font=font, fill = 255)
+        oled.image(image)
+        oled.show()
+        self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
+        os.remove(unknown_img_path)
+
 
     def register_new_user(self):
 
@@ -136,8 +180,11 @@ class App:
         name = self.name_register_new_user.get(1.0,'end-1c')
         email = self.email_register_new_user.get(1.0,'end-1c')
         password = self.password_register_new_user.get()
+        bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashpassword = str(bcrypt.hashpw(bytes, salt))
         cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(username)), self.register_new_user_capture)
-        insert_user(username, name, email,password)
+        insert_user(username, name, email,password = hashpassword)
         util.msg_box('Success!', 'User registered successfully')
         self.register_new_user_window.destroy()
         app.start()

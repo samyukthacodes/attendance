@@ -66,7 +66,7 @@ def recognize(img, db_path):
         known_image = face_recognition.load_image_file(path_)
         known_faces = face_recognition.face_encodings(face_image = known_image)
 
-        match = face_recognition.compare_faces([known_faces], embeddings_unknown, tolerance=0.44)[0]
+        match = face_recognition.compare_faces([known_faces], embeddings_unknown, tolerance=0.1)[0]
         
         
         j += 1
