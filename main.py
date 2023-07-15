@@ -29,6 +29,15 @@ class App:
         self.db_dir = './dib'
         if not os.path.exists(self.db_dir):
             os.mkdir(self.db_dir)
+        oled.fill(0)
+        image = Image.new("1",(oled.width, oled.height))
+        draw = ImageDraw.Draw(image)
+        text = 'VisionTrack'
+        font_path = os.path.join(cv2.__path__[0], 'qt', 'fonts','DejaVuSans.ttf')
+        font = ImageFont.truetype(font_path, size = 14)
+        draw.text((25,25), text, font=font, fill = 255)
+        oled.image(image)
+        oled.show()
     def start(self):
         self.root.mainloop()
 
@@ -68,7 +77,9 @@ class App:
                                 image = Image.new("1",(oled.width, oled.height))
                                 draw = ImageDraw.Draw(image)
 
-                                font = ImageFont.load_default()
+                                
+                                font_path = os.path.join(cv2.__path__[0], 'qt', 'fonts','DejaVuSans.ttf')
+                                font = ImageFont.truetype(font_path, size = 10)
                                 text = "Person not found.\nPlease register"
                                 
                                 draw.text((0,0), text, font=font, fill = 255)
@@ -90,9 +101,10 @@ class App:
                                 image = Image.new("1",(oled.width, oled.height))
                                 draw = ImageDraw.Draw(image)
 
-                                font = ImageFont.load_default()
+                                font_path = os.path.join(cv2.__path__[0], 'qt', 'fonts','DejaVuSans.ttf')
+                                font = ImageFont.truetype(font_path, size = 10)
 
-                                text = 'Welcome {}\nUsername:{}.'.format(name, username)
+                                text = 'Welcome\n{}\nUsername:{}.'.format(name, username)
                                 draw.text((0,0), text, font=font, fill = 255)
                                 oled.image(image)
                                 oled.show()
@@ -103,8 +115,10 @@ class App:
         oled.fill(0)
         image = Image.new("1",(oled.width, oled.height))
         draw = ImageDraw.Draw(image)
-        text = ':)'
-        draw.text((0,0), text, font=font, fill = 255)
+        text = 'VisionTrack'
+        font_path = os.path.join(cv2.__path__[0], 'qt', 'fonts','DejaVuSans.ttf')
+        font = ImageFont.truetype(font_path, size = 14)
+        draw.text((25,25), text, font=font, fill = 255)
         oled.image(image)
         oled.show()
         self.text_label_main_window.after(3000, self.text_label_main_window.destroy)
